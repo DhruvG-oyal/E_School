@@ -2,112 +2,78 @@ import React, { useState } from 'react';
 import LogoutP from './logoutpannel';
 import { useNavigate } from 'react-router-dom';
 
+const btn = "px-3 py-1.5 text-[13px] rounded-lg border border-[#1e3a5f] bg-[#0d1424] text-slate-200 hover:text-white hover:border-blue-500 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer";
+
 const NavbarC = ({ userDetails, title, length, currentPage, onPageChange, maintitle, toggleSidebar }) => {
   const navigate = useNavigate();
   const [showDropdown, setShowDropdown] = useState(false);
-  const [selectedPage, setSelectedPage] = useState(currentPage);
-
-  
-
-  const handleNext = () => {
-    if (currentPage < length) {
-      onPageChange(currentPage + 1);
-    }
-  };
-
-  const navtoDashboard = () => {
-    navigate('/dashboard');
-  };
-
-  const handlePrev = () => {
-    if (currentPage > 1) {
-      onPageChange(currentPage - 1);
-    }
-  };
-
-  const handleJumpTo = (page) => {
-    onPageChange(page);
-    setSelectedPage(page);
-    setShowDropdown(false);
-  };
-
-  const toggleDropdown = () => {
-    setShowDropdown(!showDropdown);
-  };
-
-  const renderDropdown = () => {
-    if (!showDropdown) return null;
-
-    const pages = Array.from({ length }, (_, index) => index + 1);
-
-    return (
-      <div className="absolute bg-[#030712] shadow-md  w-48 border border-solid border-[#2c2e73]  max-h-[500px] overflow-auto z-10 top-[36px]">
-        {pages.map((page) => (
-          <div
-            key={page}
-            onClick={() => handleJumpTo(page)}
-            className={`cursor-pointer rounded-lg px-3 py-2 text-white font-open-sans text-[14px] hover:bg-[#9898d3]  ${
-              page === selectedPage ? ' bg-[#030712] font-sherif cursor-default text-[#7b7d83]  hover:bg-[#030712]' : ''
-            }`}
-          >
-            {page} - {maintitle[page - 1]}
-          </div>
-        ))}
-      </div>
-    );
-  };
 
   return (
-    <nav className="bg-black border border-white flex items-center justify-between px-4 py-2 h-16 top-0 relative">
-      <div
-        onClick={navtoDashboard}
-        className="text-[22px] font-family:Times hover:cursor-pointer font-bold text-white"
-      >
-        E-LEARNING SCHOOL
+    <nav className="bg-[#0a0f1e] border-b border-[#1e3a5f] flex items-center justify-between px-6 h-14 sticky top-0 z-50">
+      {/* left */}
+      <div className="flex items-center gap-4">
+        <button
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-slate-300 hover:text-white text-[13px] transition cursor-pointer"
+          style={{ background: 'transparent' }}
+        >
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+          </svg>
+          Courses
+        </button>
+        <div className="w-px h-4 bg-[#1e3a5f]" />
+        <span className="text-white font-medium text-[14px] max-w-[260px] truncate">{title}</span>
       </div>
 
-      <div className="text-white font-sans text-[16px] font-semibold">
-        {title}  ({currentPage}/{length})
-      </div>
-
-      <div className="flex items-center space-x-4 relative">
-        <div className="flex gap-2 mr-12">
-          <button
-            className={`hover:bg-gray-700 px-4 py-2 rounded-md bg-[#030712] border border-[#2c2e73] border-solid text-white focus:outline-none focus:ring-2 focus:ring-gray-300 ${
-              currentPage === 1 ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'
-            }`}
-            onClick={handlePrev}
-          >
-            Prev
-          </button>
-          <button
-            className={`hover:bg-gray-700 px-4 py-2 rounded-md bg-[#030712] border border-[#2c2e73] border-solid text-white focus:outline-none focus:ring-2 focus:ring-gray-300 ${
-              currentPage === length ? 'cursor-not-allowed opacity-50' : 'hover:cursor-pointer'
-            }`}
-            onClick={handleNext}
-          >
-            Next
-          </button>
-          <div className="relative">
-            <button
-              onClick={toggleDropdown}
-              className="hover:bg-gray-700  rounded-md bg-[#030712] border py-2 border-[#2c2e73] border-solid text-white focus:outline-none focus:ring-2 focus:ring-gray-300 hover:cursor-pointer flex flex-row"
-            >
-              <div> Jump To </div>
-
-              <img
-                src='https://static.vecteezy.com/system/resources/previews/015/152/841/large_2x/slant-arrow-geometric-line-for-modern-and-futuristic-design-element-png.png'
-                className=" h-4 ml-2 "
-                alt="Arrow Icon"
-              />
-            </button>
-
-            {renderDropdown()}
+      {/* center — progress */}
+      {length && (
+        <div className="flex items-center gap-3">
+          <span className="text-slate-300 text-[12px]">Page {currentPage} of {length}</span>
+          <div className="w-32 h-1.5 bg-[#1e3a5f] rounded-full overflow-hidden">
+            <div className="h-full bg-blue-500 rounded-full transition-all"
+              style={{ width: `${(currentPage / length) * 100}%` }} />
           </div>
         </div>
+      )}
 
-        <button onClick={toggleSidebar} className="bg-[#030712] border border-[#2c2e73] border-solid text-white px-4 py-2 hover cursor-pointer rounded-md">Comments</button>
+      {/* right */}
+      <div className="flex items-center gap-2">
+        <button onClick={() => onPageChange(Math.max(currentPage - 1, 1))} disabled={currentPage === 1} className={btn}>
+          ← Prev
+        </button>
+        <button onClick={() => onPageChange(Math.min(currentPage + 1, length))} disabled={currentPage === length} className={btn}>
+          Next →
+        </button>
 
+        {/* jump to dropdown */}
+        <div className="relative">
+          <button onClick={() => setShowDropdown((p) => !p)} className={btn}>
+            Jump to ▾
+          </button>
+          {showDropdown && (
+            <div className="absolute right-0 top-full mt-1 w-56 bg-[#0d1424] border border-[#1e3a5f] rounded-xl shadow-2xl z-50 overflow-hidden max-h-64 overflow-y-auto">
+              {Array.from({ length }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => { onPageChange(i + 1); setShowDropdown(false); }}
+                  className={`w-full text-left px-4 py-2.5 text-[13px] transition cursor-pointer ${
+                    i + 1 === currentPage
+                      ? 'bg-blue-600/20 text-blue-400'
+                      : 'text-slate-200 hover:bg-[#1e3a5f] hover:text-white'
+                  }`}
+                >
+                  <span className="text-slate-500 mr-2">{i + 1}.</span>
+                  {maintitle?.[i] || `Page ${i + 1}`}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <button onClick={toggleSidebar} className={btn}>
+          💬 Comments
+        </button>
         <LogoutP userDetails={userDetails} />
       </div>
     </nav>

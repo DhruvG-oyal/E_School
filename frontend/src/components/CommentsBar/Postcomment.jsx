@@ -1,59 +1,52 @@
 import React, { useState } from 'react';
 import axios from 'axios';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPaperPlane } from '@fortawesome/free-solid-svg-icons';
 import { format } from 'date-fns';
 import useStore from '../../zustand/useStore';
 
-const Postcomment = ({ userDetails, courseId,onPostComment }) => {
+const Postcomment = ({ userDetails, courseId, onPostComment }) => {
   const [comment, setComment] = useState('');
+  const [loading, setLoading] = useState(false);
   const addComment = useStore((state) => state.addComment);
 
-  const handleInputChange = (e) => {
-    setComment(e.target.value);
-  };
-
-  const handleButtonClick = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    const commentData = {
-      username: userDetails.firstName,
-      email: userDetails.username,
-      comment,
-      time: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
-      courseId,
-    };
-
+    if (!comment.trim()) return;
+    setLoading(true);
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/comment`, commentData);
-      console.log('Success:', response.data);
+      const response = await axios.post(`${process.env.REACT_APP_API_URL}/comment`, {
+        username: userDetails.firstName,
+        email: userDetails.username,
+        comment,
+        time: format(new Date(), "yyyy-MM-dd'T'HH:mm:ss.SSSxxx"),
+        courseId,
+      });
       setComment('');
-      addComment(response.data); 
+      if (addComment) addComment(response.data);
       onPostComment();
-    } catch (error) {
-      console.error('Error posting comment:', error);
+    } catch (err) {
+      console.error('Error posting comment:', err);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
-    <div className="post-comment">
-      <form className="flex items-center">
-        <input
-          type="text"
-          value={comment}
-          onChange={handleInputChange}
-          placeholder="Write a comment..."
-          className="input text-white h-[26px] placeholder-white border-[1px] border-[#2c2e73] border-solid  bg-[#030712] rounded-md"
-        />
-        <button
-          type="button"
-          onClick={handleButtonClick}
-          className="flex ml-2 items-center justify-center p-2 bg-blue-500 cursor-pointer text-white rounded-r"
-        >
-          <FontAwesomeIcon  icon={faPaperPlane} />
-        </button>
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="flex gap-2 mt-3 pt-3 border-t border-[#1e2a45]">
+      <input
+        type="text"
+        value={comment}
+        onChange={(e) => setComment(e.target.value)}
+        placeholder="Add a comment…"
+        className="flex-1 px-3 py-2 text-[13px] bg-[#080c18] border border-[#1e2a45] rounded-lg text-slate-200 placeholder-slate-600 focus:outline-none focus:border-blue-600 transition"
+      />
+      <button
+        type="submit"
+        disabled={loading || !comment.trim()}
+        className="px-3 py-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-40 disabled:cursor-not-allowed text-white rounded-lg transition cursor-pointer text-[13px] flex-shrink-0"
+      >
+        {loading ? '…' : 'Post'}
+      </button>
+    </form>
   );
 };
 

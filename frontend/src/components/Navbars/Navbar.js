@@ -1,30 +1,39 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-
 
 const Navbar = () => {
   const navigate = useNavigate();
-  const handleLoginClick = () => {
-    navigate('/login');
-  };
+  const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <header className="self-stretch  border-solid  border-white p-2 bg-gradient-to-r  from-blue-800  to-blue-800 flex flex-row items-center justify-between py-4 px-8 box-border top-0 z-[99] sticky max-w-full text-base text-white font-domine shadow-lg border-4 border-transparent border-animation">
-      <div className="flex items-center cursor-pointer">
-        <img
-          src="https://png.pngtree.com/template/20190927/ourlarge/pngtree-initials-letter-e-logo-vector-circle-template-image_310499.jpg"
-          alt="E-Learning School Logo"
-          className="w-10 h-10 rounded-full"
-        />
-        <div className="ml-5 text-[30px] text-white font-bold">E-Learning School</div>
-      </div>
+    <header className="w-full bg-[#0a0f1e] border-b border-[#1e2a45] sticky top-0 z-50">
+      <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center text-white font-bold text-sm">E</div>
+          <span className="text-white font-semibold text-[17px] tracking-wide">E-School</span>
+        </div>
 
-      <button
-        onClick={handleLoginClick}
-        className="py-2 px-6 bg-sandybrown rounded-lg text-white hover:bg-sienna transition duration-300 ease-in-out"
-      >
-        Login
-      </button>
+        <nav className="hidden md:flex items-center gap-8 text-sm text-gray-300">
+          <span className="hover:text-white cursor-pointer transition">Courses</span>
+          <span className="hover:text-white cursor-pointer transition">Community</span>
+          <span className="hover:text-white cursor-pointer transition">About</span>
+        </nav>
+
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => navigate('/login')}
+            className="text-sm text-gray-300 hover:text-white px-4 py-2 transition cursor-pointer"
+          >
+            Sign in
+          </button>
+          <button
+            onClick={() => navigate('/signup')}
+            className="text-sm bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg font-medium transition cursor-pointer"
+          >
+            Get started
+          </button>
+        </div>
+      </div>
     </header>
   );
 };

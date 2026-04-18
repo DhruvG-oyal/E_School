@@ -17,21 +17,16 @@ const Cards = ({ searchTerm, buttonTag }) => {
       setLoading(true);
       try {
         const response = await axios.get(`${process.env.REACT_APP_API_URL}/cards`, {
-          params: {
-            searchTerm,
-            buttonTag,
-            page: currentPage,
-            limit: itemsPerPage,
-          }
+          params: { searchTerm, buttonTag, page: currentPage, limit: itemsPerPage },
         });
-        if (response.data && response.data.cards) {
+        if (response.data?.cards) {
           setCardsData(response.data.cards);
           setTotalPages(Math.ceil(response.data.totalCount / itemsPerPage));
         } else {
           setCardsData([]);
         }
-      } catch (error) {
-        console.error("Error fetching the cards data", error);
+      } catch (err) {
+        console.error("Error fetching cards", err);
       } finally {
         setLoading(false);
       }
@@ -40,124 +35,104 @@ const Cards = ({ searchTerm, buttonTag }) => {
   }, [searchTerm, buttonTag, currentPage]);
 
   useEffect(() => {
-    if (buttonTag && !searchTerm) {
-      setSearchTermTags(buttonTag);
-    } else if (!buttonTag && searchTermTags) {
-      setSearchTermTags("");
-    }
+    if (buttonTag && !searchTerm) setSearchTermTags(buttonTag);
+    else if (!buttonTag && searchTermTags) setSearchTermTags("");
   }, [buttonTag, searchTerm]);
 
-  const handleSearchTags = (e) => {
-    setSearchTermTags(e.target.value);
-  };
-
-  const handleSearchTagChange = (searchTag) => {
-    setSearchTermTags(searchTag);
-  };
-
-  const handleSortChange = (e) => {
-    setSortOption(e.target.value);
-  };
-
-  const handlePageChange = (newPage) => {
-    if (newPage > 0 && newPage <= totalPages) {
-      setCurrentPage(newPage);
-    }
-  };
-
-  const getSortedCards = (cards) => {
-    if (sortOption === "createdAt") {
-      return cards.slice().sort((a, b) => {
-        if (!a.createdAt) return 1;
-        if (!b.createdAt) return -1;
-        return new Date(b.createdAt) - new Date(a.createdAt);
-      });
-    }
+  const getSortedFiltered = () => {
+    let cards = cardsData.filter((card) => {
+      if (searchTermTags) return card.tags.some((t) => t.toLowerCase().includes(searchTermTags.toLowerCase()));
+      if (searchTerm) return card.title.toLowerCase().includes(searchTerm.toLowerCase());
+      return true;
+    });
+    if (sortOption === "createdAt")
+      cards = cards.slice().sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
     return cards;
   };
 
-  const filteredCards = getSortedCards(
-    cardsData.filter((card) => {
-      if (searchTermTags) {
-        return card.tags.some((tag) =>
-          tag.toLowerCase().includes(searchTermTags.toLowerCase())
-        );
-      } else if (searchTerm) {
-        return card.title.toLowerCase().includes(searchTerm.toLowerCase());
-      } else {
-        return true;
-      }
-    })
-  );
+  const filteredCards = getSortedFiltered();
 
   return (
-    <div className="p-8 ">
-      <div className="text-center mb-2 font-bold">Top Tags</div>
-      <div className="flex justify-center mb-4">
-        <LearningPaths onSearchTagChange={handleSearchTagChange} cards={cardsData} />
-      </div>
-      <div className="flex  flex-row items-center justify-center mb-4">
-        <input
-          type="text"
-          placeholder="Search by tags..."
-          value={searchTermTags}
-          onChange={handleSearchTags}
-          className="mb-4 md:mb-0 p-2 placeholder-gray-100 drop-shadow-[0_0_2.4px_#5C2E00] text-[12px] bg-[#030712] text-white focus:outline-none focus:ring-2 focus:ring-gray-300 border border-[#2c2e73] border-solid rounded md:w-3/12"
-        />
-        <select
-          value={sortOption}
-          onChange={handleSortChange}
-          className="md:ml-4 mb-4 ml-3 cursor-pointer text-center text-[12px] drop-shadow-[0_0_2.4px_#5C2E00] p-2 bg-[#030712] text-white focus:outline-none focus:ring-2 focus:ring-gray-300 border border-[#2c2e73] border-solid rounded"
-        >
-          <option className="p-1 text-[12px] mb-2" value="default">Sort</option>
-          <option value="createdAt">Latest</option>
-        </select>
+    <div className="px-6 py-6">
+      {/* filter bar */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        {/* top tags */}
+        <LearningPaths onSearchTagChange={setSearchTermTags} cards={cardsData} />
+
+        <div className="flex items-center gap-2 ml-auto">
+          <div className="relative">
+            <input
+              type="text"
+              placeholder="Filter by tag…"
+              value={searchTermTags}
+              onChange={(e) => setSearchTermTags(e.target.value)}
+              className="pl-7 pr-3 py-1.5 text-[12px] bg-[#0f172a] border border-[#1e2a45] text-slate-200 rounded-lg placeholder-slate-500 focus:outline-none focus:border-blue-600 w-36 transition"
+            />
+            <svg className="absolute left-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-4.35-4.35M17 11A6 6 0 1 1 5 11a6 6 0 0 1 12 0z" />
+            </svg>
+          </div>
+          <select
+            value={sortOption}
+            onChange={(e) => setSortOption(e.target.value)}
+            className="text-[12px] bg-[#0f172a] border border-[#1e2a45] text-slate-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-blue-600 cursor-pointer transition"
+          >
+            <option value="default">Default</option>
+            <option value="createdAt">Newest</option>
+          </select>
+        </div>
       </div>
 
-
+      {/* cards grid */}
       {loading ? (
-        <div className="flex justify-center flex-col items-center min-h-[600px]">
-          <div className="loader"></div>
+        <div className="flex justify-center items-center min-h-[400px]">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
         </div>
       ) : (
-
-
         <>
-<div className="flex justify-center items-center">
-  <div className="w-9/12 grid grid-cols-1 gap-8 lg:grid-cols-2 min-h-[550px]">
-    {/* Ensure filteredCards is an array */}
-    {Array.isArray(filteredCards) && filteredCards.map((card, index) => (
-      <Card key={index} card={card} />
-    ))}
-  </div>
-</div>
-
-
-          <div className="pagination-controls flex justify-center mt-4">
-            <button
-              onClick={() => handlePageChange(currentPage - 1)}
-              className={`px-4 py-2 rounded-lg mx-1 ${currentPage === 1 ? 'text-white border border-solid cursor-not-allowed bg-gray-200' : 'text-white border border-solid bg-black cursor-pointer'}`}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </button>
-            {Array.from({ length: totalPages }, (_, index) => (
-              <button
-                key={index}
-                onClick={() => handlePageChange(index + 1)}
-                className={`px-4 py-2 text-white mx-1 ${index + 1 === currentPage ? 'bg-blue-300 drop-shadow-[0_0_2.4px_#5C2E00] border border-solid' : 'bg-gray-200 text-black'}`}
-              >
-                {index + 1}
-              </button>
-            ))}
-            <button
-              onClick={() => handlePageChange(currentPage + 1)}
-              className={`px-4 py-2 rounded-lg mx-1 ${currentPage === totalPages ? 'text-white border border-solid cursor-not-allowed bg-gray-200' : 'text-white border border-solid bg-black cursor-pointer'}`}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </button>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-[400px]">
+            {filteredCards.length > 0 ? (
+              filteredCards.map((card, i) => <Card key={i} card={card} />)
+            ) : (
+              <div className="col-span-2 flex flex-col items-center justify-center min-h-[300px] text-slate-500">
+                <div className="text-4xl mb-3">🔍</div>
+                <div className="text-[15px]">No courses match your filter.</div>
+              </div>
+            )}
           </div>
+
+          {/* pagination */}
+          {totalPages > 1 && (
+            <div className="flex justify-center items-center gap-2 mt-8">
+              <button
+                onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1.5 text-[13px] rounded-lg border border-[#1e2a45] bg-[#0d1424] text-slate-200 hover:text-white hover:border-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+              >
+                ← Prev
+              </button>
+              {Array.from({ length: totalPages }, (_, i) => (
+                <button
+                  key={i}
+                  onClick={() => setCurrentPage(i + 1)}
+                  className={`w-8 h-8 rounded-lg text-[13px] font-medium transition cursor-pointer ${
+                    i + 1 === currentPage
+                      ? 'bg-blue-600 text-white border border-blue-500'
+                      : 'border border-[#1e2a45] bg-[#0d1424] text-slate-200 hover:border-blue-600 hover:text-white'
+                  }`}
+                >
+                  {i + 1}
+                </button>
+              ))}
+              <button
+                onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1.5 text-[13px] rounded-lg border border-[#1e2a45] bg-[#0d1424] text-slate-200 hover:text-white hover:border-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+              >
+                Next →
+              </button>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -1,61 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
+const LogoutP = ({ userDetails }) => {
+  const navigate = useNavigate();
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef(null);
 
-const LogoutP=({userDetails})=>{
-    const navigate = useNavigate()
+  useEffect(() => {
+    const handler = (e) => { if (ref.current && !ref.current.contains(e.target)) setIsOpen(false); };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
-    const [isOpen, setIsOpen] = useState(false);
-    
   const handleLogout = () => {
     localStorage.removeItem('jwtToken');
     navigate('/login');
   };
 
-  console.log(userDetails)
-  return(
-<>
-    <div
-    onClick={()=>setIsOpen(!isOpen)}
-    className='rounded-full bg-[#ec407a] w-8 h-8 cursor-pointer text-white flex items-center justify-center'
-  >
-    {userDetails?.firstName?.[0]}{userDetails?.lastName?.[0]}
-  </div>
-  {
-    isOpen? 
-    
-    <div className='absolute  rounded-lg top-full right-5  bg-[#030712] border border-[#2c2e73] border-solid flex flex-col gap-1 z-50 '>
-       <div className='flex flex-row'>
-       <div
-    className='rounded-full bg-[#ec407a] w-6 h-6 mt-6 ml-2 mr-1 text-white flex items-center justify-center'
-  >
-    {userDetails?.firstName?.[0]}
-  </div>
-      <div className='ml-4 mr-4 mt-2' >
+  const initials = `${userDetails?.firstName?.[0] || ''}${userDetails?.lastName?.[0] || ''}`;
 
-      <div className='font-semibold text-[20px] mt-2 mb-1  text-white'>
-        {userDetails?.firstName + ' ' + userDetails?.lastName}
-      </div>
-      <div className='text-[14px] text-gray-100'>
-        {userDetails?.username}
-      </div>
-      </div>
-      </div>
-
-
-      <div className="w-full h-px bg-gray-300"></div>
-
+  return (
+    <div className="relative" ref={ref}>
       <button
-    onClick={handleLogout}
-    className="px-6 py-2 bg-[#030712] m-2 text-white rounded-lg hover:cursor-pointer hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:ring-opacity-50"
-  >
-    Logout
-  </button>
-  
-    </div>: null
-  }
-</>
+        onClick={() => setIsOpen((p) => !p)}
+        className="w-8 h-8 rounded-full bg-blue-600 hover:bg-blue-500 text-white text-[12px] font-bold flex items-center justify-center transition cursor-pointer flex-shrink-0"
+      >
+        {initials || '?'}
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 top-full mt-2 w-56 bg-[#0f172a] border border-[#1e2a45] rounded-xl shadow-2xl z-50 overflow-hidden">
+          <div className="px-4 py-4 border-b border-[#1e2a45]">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-full bg-blue-600 text-white text-[13px] font-bold flex items-center justify-center flex-shrink-0">
+                {initials || '?'}
+              </div>
+              <div className="min-w-0">
+                <div className="text-white font-semibold text-[14px] truncate">
+                  {userDetails?.firstName} {userDetails?.lastName}
+                </div>
+                <div className="text-gray-500 text-[12px] truncate">{userDetails?.username}</div>
+              </div>
+            </div>
+          </div>
+          <div className="p-2">
+            <button
+              onClick={handleLogout}
+              className="w-full text-left px-3 py-2 text-[13px] text-red-400 hover:bg-red-900/20 rounded-lg transition cursor-pointer"
+            >
+              Sign out
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
   );
-}
+};
 
 export default LogoutP;

@@ -57,6 +57,11 @@ const signinBody = zod.object({
 })
 
 router.post("/signin", async (req, res) => {
+    const { success } = signinBody.safeParse(req.body);
+    if (!success) {
+        return res.status(411).json({ message: "Incorrect inputs" });
+    }
+
     const user = await User.findOne({
         username: req.body.username,
         password: req.body.password
@@ -64,7 +69,8 @@ router.post("/signin", async (req, res) => {
 
     if (user) {
         const token = jwt.sign({
-            username: req.body.username
+            username: req.body.username,
+            userId: user._id
         }, JWT_SECRET);
   
         res.json({
@@ -86,12 +92,15 @@ const updateBody = zod.object({
 router.put("/", authMiddleware, async (req, res) => {
     const { success } = updateBody.safeParse(req.body)
     if (!success) {
-        res.status(411).json({
+        return res.status(411).json({
             message: "Error while updating information"
         })
     }
 
-	await User.updateOne({ _id: req.userId }, req.body);
+    const result = await User.updateOne({ username: req.username }, req.body);
+    if (result.matchedCount === 0) {
+        return res.status(404).json({ message: "User not found" });
+    }
 
     res.json({
         message: "Updated successfully"

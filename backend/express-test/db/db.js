@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
-require('dotenv').config(); 
+require('dotenv').config();
 
-const mongoURI = process.env.MONGODB_URL;
+const mongoURI = process.env.MONGODB_URL || 'mongodb://127.0.0.1:27017/eschool';
 
-if (!mongoURI) {
-  throw new Error('MONGODB_URL is not defined in environment variables');
+if (!process.env.MONGODB_URL) {
+  console.warn('MONGODB_URL is not defined; using default local MongoDB URI.');
 }
 
 console.log('MongoDB URI:', mongoURI);
@@ -18,8 +18,6 @@ mongoose.connect(mongoURI, {
 .catch((err) => {
   console.error('Database connection error:', err);
 });
-;
-
 module.exports = {
   mongoose
 };

@@ -7,98 +7,115 @@ const SignupPage = () => {
   const [password, setPassword] = useState('');
   const [firstname, setFirstname] = useState('');
   const [lastname, setLastname] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const navigate = useNavigate();
-  const apiUrl = process.env.REACT_APP_API_URL;
-  console.log(apiUrl);
 
   const handleSignup = async () => {
+    if (!username || !password || !firstname || !lastname) {
+      setError('Please fill in all fields.');
+      return;
+    }
+    setLoading(true);
+    setError('');
     try {
-      const response = await axios.post(`${process.env.REACT_APP_API_URL}/user/signup`, {
-        username,
-        password,
-        firstName: firstname,
-        lastName: lastname,
+      await axios.post(`${process.env.REACT_APP_API_URL}/user/signup`, {
+        username, password, firstName: firstname, lastName: lastname,
       });
-      console.log('Signup successful:', response.data);
       navigate('/login');
-    } catch (error) {
-      console.error('Signup error:', error);
+    } catch (err) {
+      setError(err?.response?.data?.message || 'Signup failed. Email may already be taken.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleLoginClick = () => {
-    navigate('/login');
+  const inputStyle = {
+    width: '100%',
+    padding: '12px 16px',
+    background: '#05080f',
+    border: '1px solid #1e3a5f',
+    borderRadius: '10px',
+    color: '#f1f5f9',
+    fontSize: '14px',
+    outline: 'none',
+    boxSizing: 'border-box',
+  };
+
+  const labelStyle = {
+    display: 'block',
+    color: '#cbd5e1',
+    fontSize: '13px',
+    fontWeight: '500',
+    marginBottom: '6px',
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-cover bg-center"
-         style={{ backgroundImage: 'url("https://wallpapercave.com/wp/wp9764009.jpg")' }}>
-      <div className="w-full max-w-md border border-[#2c2e73] border-solid bg-[#030712]  p-8 rounded shadow-md">
-        <div className="text-center">
-          <h2 className="text-2xl font-bold text-white mt-4">Signup</h2>
-          <p className="text-sm text-white mb-4">Create your account in seconds</p>
-        </div>
-        
-        <input
-          type="text"
-          placeholder="First Name"
-          value={firstname}
-          onChange={(e) => setFirstname(e.target.value)}
-          className="w-full p-2 mb-4 border border-solid border-[#2c2e73] bg-[#030712] rounded placeholder-gray-100 text-white font-sans focus:outline-none f focus:border-[#2c2e73]"
-        />
-        <input
-          type="text"
-          placeholder="Last Name"
-          value={lastname}
-          onChange={(e) => setLastname(e.target.value)}
-                   className="w-full p-2 mb-4 border border-solid border-[#2c2e73] bg-[#030712] rounded placeholder-gray-100 text-white font-sans focus:outline-none f focus:border-[#2c2e73]"
-        />
-        <input
-          type="text"
-          placeholder="Email Address"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-                   className="w-full p-2 mb-4 border border-solid border-[#2c2e73] bg-[#030712] rounded placeholder-gray-100 text-white font-sans focus:outline-none f focus:border-[#2c2e73]"
-        />
-        <input
-          type="password"
-          placeholder="Create Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className="w-full p-2 mb-4 border border-solid border-[#2c2e73] bg-[#030712] rounded placeholder-gray-100 text-white font-sans focus:outline-none f focus:border-[#2c2e73]"
-        />
-        
-        {/* <div className="flex items-center mb-4">
-          <input
-            type="checkbox"
-            id="keepLoggedIn"
-            checked={keepLoggedIn}
-            onChange={handleCheckboxChange}
-            className="mr-2 text-white"
-          />
-          <label htmlFor="keepLoggedIn" className="text-sm text-white">
-            I agree to the terms and privacy policy
-          </label>
-        </div>
-         */}
+    <div style={{ minHeight: '100vh', background: '#05080f', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px' }}>
+      {/* grid bg */}
+      <div style={{
+        position: 'fixed', inset: 0, pointerEvents: 'none', opacity: 0.04,
+        backgroundImage: 'linear-gradient(#334155 1px,transparent 1px),linear-gradient(90deg,#334155 1px,transparent 1px)',
+        backgroundSize: '48px 48px'
+      }} />
 
+      <div style={{ width: '100%', maxWidth: '440px', position: 'relative', zIndex: 1 }}>
+        {/* logo */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }} onClick={() => navigate('/')}>
+            <div style={{ width: '36px', height: '36px', borderRadius: '8px', background: '#2563eb', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'white', fontWeight: 'bold', fontSize: '16px' }}>E</div>
+            <span style={{ color: '#f1f5f9', fontWeight: '700', fontSize: '18px' }}>E-School</span>
+          </div>
+        </div>
 
-        <button
-          onClick={handleSignup}
-          className="w-full ml-2 border border-solid border-[#2c2e73] bg-[#030712] text-white py-2 rounded hover:bg-gray-200 hover cursor-pointer transition"
-        >
-          Create an Account
-        </button>
-        
-        <p className="mt-4 text-center text-sm text-white">
-          Already a member?{' '}
-          <a
-            onClick={handleLoginClick}
-            className="text-gray-100 cursor-pointer hover:underline"
+        {/* card */}
+        <div style={{ background: '#0d1424', border: '1px solid #1e3a5f', borderRadius: '20px', padding: '36px', boxShadow: '0 25px 50px rgba(0,0,0,0.5)' }}>
+          <h1 style={{ color: '#f1f5f9', fontWeight: '800', fontSize: '26px', marginBottom: '6px' }}>Create your account</h1>
+          <p style={{ color: '#94a3b8', fontSize: '14px', marginBottom: '28px' }}>Join E-School and start learning today.</p>
+
+          {error && (
+            <div style={{ background: 'rgba(127,29,29,0.3)', border: '1px solid rgba(185,28,28,0.5)', color: '#f87171', fontSize: '13px', padding: '12px 16px', borderRadius: '10px', marginBottom: '20px' }}>
+              {error}
+            </div>
+          )}
+
+          {/* first + last name row */}
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '16px' }}>
+            <div>
+              <label style={labelStyle}>First name</label>
+              <input type="text" placeholder="John" value={firstname} onChange={(e) => setFirstname(e.target.value)} style={inputStyle} />
+            </div>
+            <div>
+              <label style={labelStyle}>Last name</label>
+              <input type="text" placeholder="Doe" value={lastname} onChange={(e) => setLastname(e.target.value)} style={inputStyle} />
+            </div>
+          </div>
+
+          <div style={{ marginBottom: '16px' }}>
+            <label style={labelStyle}>Email address</label>
+            <input type="email" placeholder="you@example.com" value={username} onChange={(e) => setUsername(e.target.value)} style={inputStyle} />
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={labelStyle}>Password</label>
+            <input type="password" placeholder="Min. 6 characters" value={password} onChange={(e) => setPassword(e.target.value)} style={inputStyle} />
+          </div>
+
+          <button
+            onClick={handleSignup}
+            disabled={loading}
+            style={{ width: '100%', background: loading ? '#1d4ed8' : '#2563eb', color: 'white', fontWeight: '600', fontSize: '15px', padding: '13px', borderRadius: '10px', border: 'none', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, transition: 'background 0.2s' }}
           >
-            Login
-          </a>
-        </p>
+            {loading ? 'Creating account…' : 'Create account'}
+          </button>
+
+          <p style={{ marginTop: '24px', textAlign: 'center', color: '#94a3b8', fontSize: '13px' }}>
+            Already have an account?{' '}
+            <span onClick={() => navigate('/login')} style={{ color: '#60a5fa', cursor: 'pointer', textDecoration: 'underline' }}>
+              Sign in
+            </span>
+          </p>
+        </div>
       </div>
     </div>
   );

@@ -1,44 +1,35 @@
-import React, { useState } from 'react';
+import React from 'react';
 import LogoutP from './logoutpannel';
 import { useNavigate } from 'react-router-dom';
-import Adminboard from '../../pages/adminboard';
 
-const NavbarP = ({ userDetails, toggleSidebar, onSearchTermChange,toggleotherdashboard }) => {
-  const [searchTermTitle, setSearchTermTitle] = useState("");
+const ghostBtn = "text-[13px] text-slate-300 hover:text-white px-3 py-1.5 rounded-lg hover:bg-[#1e2a45] transition cursor-pointer";
 
-  const handleSearchTitle = (e) => {
-    setSearchTermTitle(e.target.value);
-    onSearchTermChange(searchTermTitle);
-  };
-
+const NavbarP = ({ userDetails, toggleSidebar, onSearchTermChange, toggleotherdashboard }) => {
   const navigate = useNavigate();
 
-  const handleViewDashboard = () => {
-    navigate('/dashboard');
-  };
-
-  const handleCreatecard = () => {
-    navigate(`/createCardboardP/${userDetails.user_id}`);
-  };
-
   return (
-    <nav className="bg-black drop-shadow-[0_0_2.4px_#5C2E00] flex items-center justify-between h-16 sticky">
-      <div className="text-2xl font-bold ml-4 text-white">E-LEARNING SCHOOL</div>
-      <button
-        onClick={handleViewDashboard}
-        className="bg-[#030712] border drop-shadow-[0_0_2.4px_#5C2E00] m-3 border-[#2c2e73] border-solid text-white px-4 py-2 hover cursor-pointer rounded-md"
-      >
-        View Dashboard
-      </button>
-      <div className="flex items-center space-x-4 mr-6">
-        <button onClick={handleCreatecard} className="bg-[#030712] border drop-shadow-[0_0_2.4px_#5C2E00] border-[#2c2e73] border-solid text-white px-4 py-2 hover cursor-pointer rounded-md">
-          Create Card
+    <nav className="bg-[#0a0f1e] border-b border-[#1e3a5f] flex items-center justify-between h-14 px-6 sticky top-0 z-50">
+      <div className="flex items-center gap-3">
+        <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center text-white font-bold text-xs">E</div>
+        <span className="text-white font-semibold text-[15px] tracking-wide">My Dashboard</span>
+      </div>
+
+      <div className="flex items-center gap-2">
+        <button onClick={() => navigate('/dashboard')} className={ghostBtn} style={{ background: 'transparent' }}>
+          All Courses
         </button>
-        <button onClick={toggleSidebar} className="bg-[#030712] border drop-shadow-[0_0_2.4px_#5C2E00] border-[#2c2e73] border-solid text-white px-4 py-2 hover cursor-pointer rounded-md">
-          Chat
+        <button
+          onClick={() => navigate(`/createCardboardP/${userDetails.user_id}`)}
+          className="text-[13px] bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded-lg transition cursor-pointer font-medium"
+          style={{ background: '#2563eb' }}
+        >
+          + New Card
         </button>
-        <button onClick={toggleotherdashboard} className="bg-[#030712] border drop-shadow-[0_0_2.4px_#5C2E00] border-[#2c2e73] border-solid text-white px-4 py-2 hover cursor-pointer rounded-md">
-          Other's dashboard
+        <button onClick={toggleSidebar} className={ghostBtn} style={{ background: 'transparent' }}>
+          💬 Chat
+        </button>
+        <button onClick={toggleotherdashboard} className={ghostBtn} style={{ background: 'transparent' }}>
+          Others
         </button>
         <LogoutP userDetails={userDetails} />
       </div>

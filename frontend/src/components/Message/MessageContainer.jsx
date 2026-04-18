@@ -1,22 +1,30 @@
-import React from 'react'
-import Messages from './Messages'
-import MessageInput from './MessageInput'
+import React from 'react';
+import Messages from './Messages';
+import MessageInput from './MessageInput';
 
-const MessageContainer = ({user,curruser,tkn}) => {
-   console.log(user);
-   console.log(tkn);
+const MessageContainer = ({ user, curruser, tkn }) => {
   return (
-    <div className='min-h-[600px] drop-shadow-[0_0_2.4px_#5C2E00] flex flex-col justify-evenly overflow-auto'>
-   
-       <div  className='border border-[#2c2e73] border-solid px-4 py-2 mb-2'>
-        <span className='label-text'>To:</span> <span className='text-white font-bold'>{user.firstName}</span>        
-        </div>  
-   <Messages user={user} curruser={curruser}/>
-<div>
-   <MessageInput userid={user._id} tkn={tkn} />
-   </div>
-    </div>
-  )
-}
+    <div className="flex flex-col">
+      {/* header */}
+      <div className="px-4 py-3 border-b border-[#1e2a45] flex items-center gap-3">
+        <div className="w-8 h-8 rounded-full bg-blue-600 text-white text-xs font-bold flex items-center justify-center flex-shrink-0">
+          {user.firstName?.[0]}
+        </div>
+        <div>
+          <div className="text-slate-200 text-[14px] font-semibold">{user.firstName} {user.lastName}</div>
+          <div className="text-slate-500 text-[11px]">{user.username}</div>
+        </div>
+      </div>
 
-export default MessageContainer
+      {/* messages */}
+      <div className="flex-1 overflow-y-auto px-4 py-3 min-h-[200px] max-h-[360px]">
+        <Messages user={user} curruser={curruser} />
+      </div>
+
+      {/* input */}
+      <MessageInput userid={user._id} tkn={tkn} />
+    </div>
+  );
+};
+
+export default MessageContainer;

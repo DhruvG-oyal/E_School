@@ -8,109 +8,103 @@ import { SocketContextProvider } from '../../context/SocketContext';
 
 const Page = () => {
   const [userDetails, setUserDetails] = useState({});
-  const [content, setContent] = useState(null);
-  const [contenttt, setContentt] = useState([]);
-  const [contentLength, setContentLength] = useState(null);
+  const [contentPages, setContentPages] = useState([]);
+  const [contentLength, setContentLength] = useState(0);
   const [currpage, setCurrPage] = useState(1);
   const [titles, setTitles] = useState([]);
-  const [showSidebar, setShowSidebar] = useState(false);
+  const [showComments, setShowComments] = useState(false);
 
   const navigate = useNavigate();
   const { id } = useParams();
   const location = useLocation();
   const { title } = location.state || {};
 
-  const toggleSidebar = () => {
-    setShowSidebar(prevState => !prevState);
-  };
-
-  const handleData = async (token) => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/user/session`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setUserDetails(response.data);
-    } catch (error) {
-      console.error('Data fetch error:', error);
-    }
-  };
-
-  const fetchContent = async (id) => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/content/${id}`);
-      setContent(response.data);
-
-      if (response.data && response.data.content && Array.isArray(response.data.content)) {
-        setContentt(response.data.content);
-        setContentLength(response.data.content.length);
-      } else {
-        console.error('Content data is not an array');
-      }
-    } catch (error) {
-      console.error('Error fetching content:', error);
-    }
-  };
-
-  const onPageChange = (page) => {
-    setCurrPage(page);
-  };
-
   useEffect(() => {
     const token = localStorage.getItem('jwtToken');
-    if (token) {
-      handleData(token);
-    } else {
-      navigate('/login');
-    }
+    if (!token) { navigate('/login'); return; }
+    axios.get(`${process.env.REACT_APP_API_URL}/user/session`, {
+      headers: { Authorization: `Bearer ${token}` },
+    }).then((r) => setUserDetails(r.data)).catch(console.error);
   }, [navigate]);
 
   useEffect(() => {
-    if (id) {
-      fetchContent(id);
-    }
+    if (!id) return;
+    axios.get(`${process.env.REACT_APP_API_URL}/content/${id}`)
+      .then((r) => {
+        const pages = r.data?.content || [];
+        setContentPages(pages);
+        setContentLength(pages.length);
+        setTitles(pages.map((p) => p.maintitle));
+      })
+      .catch(console.error);
   }, [id]);
-
-  useEffect(() => {
-    if (content && content.content && Array.isArray(content.content)) {
-      const titles = content.content.map(item => item.maintitle);
-      setContentt(content.content);
-      setTitles(titles);
-    }
-  }, [content]);
 
   return (
     <SocketContextProvider user={userDetails}>
-    <div className='bg-[#2f3437]  min-h-screen flex flex-col'>
-      <div className='w-full border border-solid  border-[#2c2e73] '>
+      <div className="bg-[#080c18] min-h-screen flex flex-col">
         <NavbarC
           userDetails={userDetails}
           title={title}
           length={contentLength}
           currentPage={currpage}
-          onPageChange={onPageChange}
+          onPageChange={setCurrPage}
           maintitle={titles}
-          toggleSidebar={toggleSidebar}
+          toggleSidebar={() => setShowComments((p) => !p)}
         />
-        </div>
-         
-<div className='flex flex-grow'>
-  <div className='flex-grow overflow-auto'>
-        <div className='mr-20 ml-20 mt-10'>
-          {contenttt.length > 0 && <Content content={contenttt[currpage - 1]} page={currpage} />}
-        </div>
-      </div>
 
-      {showSidebar && (
-          <div className='w-72 text-white p-2 border-l rounded-[18px] border-[#2c2e73] border-solid bg-[#030712] relative ' style={{ maxHeight: '100vh' }}>
-            <CommentBar userdetail={userDetails} id={id} />
+        <div className="flex flex-1 max-w-7xl w-full mx-auto px-6 py-8 gap-6">
+          {/* main content */}
+          <div className="flex-1 min-w-0">
+            <div className="bg-[#0a0f1e] border border-[#1e2a45] rounded-2xl overflow-hidden">
+              <div className="p-8">
+                {contentPages.length > 0 ? (
+                  <Content content={contentPages[currpage - 1]} page={currpage} />
+                ) : (
+                  <div className="flex flex-col items-center justify-center min-h-[300px] text-slate-500">
+                    <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mb-4" />
+                    <p className="text-[14px]">Loading content…</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* page navigation bottom */}
+            {contentLength > 0 && (
+              <div className="flex justify-between items-center mt-4">
+                <button
+                  onClick={() => setCurrPage((p) => Math.max(p - 1, 1))}
+                  disabled={currpage === 1}
+                  className="px-4 py-2 text-[13px] rounded-lg border border-[#1e2a45] bg-[#0d1424] text-slate-200 hover:text-white hover:border-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                >
+                  ← Previous page
+                </button>
+                <span className="text-slate-300 text-[13px]">{currpage} / {contentLength}</span>
+                <button
+                  onClick={() => setCurrPage((p) => Math.min(p + 1, contentLength))}
+                  disabled={currpage === contentLength}
+                  className="px-4 py-2 text-[13px] rounded-lg border border-[#1e2a45] bg-[#0d1424] text-slate-200 hover:text-white hover:border-blue-600 disabled:opacity-30 disabled:cursor-not-allowed transition cursor-pointer"
+                >
+                  Next page →
+                </button>
+              </div>
+            )}
           </div>
-      )}
-      </div>
 
-      
-    </div>
+          {/* comments panel */}
+          {showComments && (
+            <div className="w-80 flex-shrink-0">
+              <div className="bg-[#0a0f1e] border border-[#1e2a45] rounded-2xl overflow-hidden sticky top-20">
+                <div className="px-4 py-3 border-b border-[#1e2a45]">
+                  <h2 className="text-white font-semibold text-[14px]">Comments</h2>
+                </div>
+                <div className="p-4">
+                  <CommentBar userdetail={userDetails} id={id} />
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
     </SocketContextProvider>
   );
 };

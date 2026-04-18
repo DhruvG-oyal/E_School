@@ -1,92 +1,40 @@
 import React, { useState, useEffect } from 'react';
 
-// CSS for Loader
-const loaderStyle = {
-  border: '8px solid #f3f3f3', // Light grey
-  borderTop: '8px solid #3498db', // Blue
-  borderRadius: '50%',
-  width: '50px',
-  height: '50px',
-  animation: 'spin 1s linear infinite',
-  display: 'inline-block'
-};
-
 const LearningPaths = ({ onSearchTagChange, cards }) => {
-  const [selectedButton, setSelectedButton] = useState('');
+  const [selected, setSelected] = useState('');
   const [topTags, setTopTags] = useState([]);
-  const [loading, setLoading] = useState(true); // Loading state
-  const hoverColor = 'bg-gray-800';
 
   useEffect(() => {
-    const fetchTags = () => {
-      setLoading(true); // Start loading
-      const tagFrequency = {};
-      cards.forEach(card => {
-        card.tags.forEach(tag => {
-          if (tagFrequency[tag]) {
-            tagFrequency[tag]++;
-          } else {
-            tagFrequency[tag] = 1;
-          }
-        });
-      });
-
-      const sortedTags = Object.keys(tagFrequency).sort((a, b) => tagFrequency[b] - tagFrequency[a]);
-      setTopTags(sortedTags);
-      setLoading(false); // End loading
-    };
-
-    fetchTags();
+    const freq = {};
+    cards.forEach((card) => card.tags.forEach((tag) => { freq[tag] = (freq[tag] || 0) + 1; }));
+    const sorted = Object.keys(freq).sort((a, b) => freq[b] - freq[a]);
+    setTopTags(sorted.slice(0, 8));
   }, [cards]);
 
-  const handleClick = (buttonLabel) => {
-    const newSelectedButton = buttonLabel === selectedButton ? '' : buttonLabel;
-    setSelectedButton(newSelectedButton);
-    onSearchTagChange(newSelectedButton);
+  const handleClick = (tag) => {
+    const next = tag === selected ? '' : tag;
+    setSelected(next);
+    onSearchTagChange(next);
   };
 
-
-  const [numTags, setNumTags] = useState(3);
-
-  useEffect(() => {
-    const updateNumTags = () => {
-      const width = window.innerWidth;
-      if (width >= 1024) {
-        setNumTags(6);
-      } else {
-        setNumTags(3);
-      }
-    };
-
-    updateNumTags(); 
-    window.addEventListener('resize', updateNumTags);
-
-    return () => {
-      window.removeEventListener('resize', updateNumTags); 
-    };
-  }, []);
+  if (!topTags.length) return null;
 
   return (
-    <div className="bg-[#030712] text-xl font-serif rounded-lg px-4 py-2 flex items-center gap-4 border drop-shadow-[0_0_2.4px_#5C2E00] border-[#2c2e73] border-solid">
-      {loading ? (
-        <div className="flex justify-center items-center min-h-[50px]">
-          <div style={loaderStyle}></div>
-        </div>
-      ) : (
-        <div className="flex items-center gap-4">
-          {topTags.slice(0, numTags).map((tag, index) => (
-            <button
-              key={index}
-              className={`bg-[#030712] rounded-lg text-gray-100 py-2 px-4 font-medium focus:outline-none hover:${hoverColor} cursor-pointer ${
-                selectedButton === tag ? hoverColor : ''
-              }`}
-              onClick={() => handleClick(tag)}
-            >
-              {tag}
-            </button>
-          ))}
-        </div>
-      )}
+    <div className="flex items-center gap-2 flex-wrap">
+      <span className="text-slate-500 text-[12px] font-medium mr-1">Tags:</span>
+      {topTags.map((tag) => (
+        <button
+          key={tag}
+          onClick={() => handleClick(tag)}
+          className={`text-[12px] px-3 py-1 rounded-full border transition cursor-pointer font-medium ${
+            selected === tag
+              ? 'bg-blue-600 border-blue-500 text-white'
+              : 'bg-[#0f172a] border-[#1e2a45] text-slate-300 hover:border-blue-600 hover:text-white'
+          }`}
+        >
+          {tag}
+        </button>
+      ))}
     </div>
   );
 };

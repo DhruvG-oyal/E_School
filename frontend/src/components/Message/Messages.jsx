@@ -1,56 +1,47 @@
 import React, { useEffect, useRef } from 'react';
 import Message from './Message';
 import { useMessageContext } from '../../context/messageContext';
-import MessageSkeleton from '../Skeletons/messageskeleton';
 import { useSocketContext } from '../../context/SocketContext';
-import notificationSound from "./assets/sounds/simple-notification-152054.mp3"
+import notificationSound from './assets/sounds/simple-notification-152054.mp3';
 
 const Messages = ({ user, curruser }) => {
   const { messages, setMessages, loading } = useMessageContext();
   const { socket } = useSocketContext();
-  const lastMessageRef = useRef();
-  const useListenMessages = () => {
-    useEffect(() => {
-      if (socket) {
-        const handleNewMessage = (newMessage) => {
-          newMessage.shouldShake = true;
-          const sound=new Audio(notificationSound);
-          sound.play()
-          setMessages((prevMessages) => [...prevMessages, newMessage]);
-        };
- 
-        socket.on('newMessage', handleNewMessage);
+  const bottomRef = useRef(null);
 
-        return () => {
-          socket.off('newMessage', handleNewMessage);
-        };
-      }
-    }, [socket, setMessages]);
-  };
-
-  useListenMessages();
-
+  // listen for incoming messages
   useEffect(() => {
-    setTimeout(() => {
-      lastMessageRef.current?.scrollIntoView({ behavior: 'smooth' });
-    }, 10);
+    if (!socket) return;
+    const handleNewMessage = (newMessage) => {
+      newMessage.shouldShake = true;
+      try { new Audio(notificationSound).play(); } catch {}
+      setMessages((prev) => [...prev, newMessage]);
+    };
+    socket.on('newMessage', handleNewMessage);
+    return () => socket.off('newMessage', handleNewMessage);
+  }, [socket, setMessages]);
+
+  // scroll to bottom on new message
+  useEffect(() => {
+    setTimeout(() => bottomRef.current?.scrollIntoView({ behavior: 'smooth' }), 50);
   }, [messages]);
 
+  if (loading) return (
+    <div className="flex justify-center py-6">
+      <div className="w-5 h-5 border-2 border-blue-600 border-t-transparent rounded-full animate-spin" />
+    </div>
+  );
+
+  if (!messages.length) return (
+    <p className="text-slate-600 text-[12px] text-center py-6">No messages yet. Say hello!</p>
+  );
+
   return (
-    <div className="m-4 min-h-[300px] max-h-[600px] overflow-auto hide-scrollbar">
-      <div className="px-4 flex-1">
-        {!loading &&
-          messages.length > 0 &&
-          messages.map((message) => (
-            <div key={message._id} ref={lastMessageRef}>
-              <Message user={user} curruser={curruser} message={message} />
-            </div>
-          ))}
-        {loading && [...Array(3)].map((_, idx) => <MessageSkeleton key={idx} />)}
-      </div>
-      {!loading && messages.length === 0 && (
-        <p className="text-center text-[12px]">Send a message to start the conversation</p>
-      )}
+    <div>
+      {messages.map((msg) => (
+        <Message key={msg._id} user={user} curruser={curruser} message={msg} />
+      ))}
+      <div ref={bottomRef} />
     </div>
   );
 };

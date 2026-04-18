@@ -15,8 +15,5 @@
       "destination": "/index.html"
     }
   ],
-  "env": {
-    "REACT_APP_API_URL": "https://winter-school-for-iciss.vercel.app/" 
-  },
   "public": true
 }
